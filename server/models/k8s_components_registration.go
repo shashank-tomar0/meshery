@@ -162,6 +162,7 @@ func init() {
 	if err != nil {
 		return
 	}
+	defer f.Close()
 	byt, err := io.ReadAll(f)
 	if err != nil {
 		return
