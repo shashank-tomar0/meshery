@@ -512,10 +512,12 @@ func (hc *HealthChecker) runMesheryVersionHealthChecks() error {
 		}
 	}
 
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
 	// skip this part as we failed to get a response from the api
 	if !skipServerLogs {
-		// needs multiple defer as Body.Close needs a valid response
-		defer func() { _ = resp.Body.Close() }()
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return errors.Errorf("\n  Invalid response: %v", err)
