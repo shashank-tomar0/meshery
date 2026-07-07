@@ -1,6 +1,9 @@
 package models
 
 import (
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -318,4 +321,58 @@ func TestDefaultLocalProviderInstallExtension_ReplacesMatchingNavigatorExtension
 	if provider.Extensions.Navigator[0].Component != "/provider/navigator/meshmap/index.js?packageVersion=new" {
 		t.Fatalf("expected replacement component to be stored, got %q", provider.Extensions.Navigator[0].Component)
 	}
+}
+// TestGenericHTTPPatternFile_Non200StatusReturnsError verifies that
+// genericHTTPPatternFile returns an error when the server responds with a
+// non-200 status, and that the response body is properly closed before the
+// early return. Prior to the fix the function returned early without closing
+// the body, leaking the HTTP connection.
+func TestGenericHTTPPatternFile_Non200StatusReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.ReadAll(r.Body)
+		_ = r.Body.Close()
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	log, err := logger.New("test", logger.Options{})
+	if err != nil {
+		t.Fatalf("failed to create logger: %v", err)
+	}
+
+	_, err = genericHTTPPatternFile(server.URL, log)
+	if err == nil {
+		t.Error("expected error for 404 response, got nil")
+	}
+	if !strings.Contains(err.Error(), "file not found") {
+		t.Errorf("expected 'file not found' error, got %v", err)
+	}
+}
+
+// TestGenericHTTPFilterFile_Non200StatusReturnsError verifies that
+// genericHTTPFilterFile returns an error when the server responds with a
+// non-200 status, and that the response body is properly closed before the
+// early return. Prior to the fix the function returned early without closing
+// the body, leaking the HTTP connection.
+func TestGenericHTTPFilterFile_Non200StatusReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.ReadAll(r.Body)
+		_ = r.Body.Close()
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	log, err := logger.New("test", logger.Options{})
+	if err != nil {
+		t.Fatalf("failed to create logger: %v", err)
+	}
+
+	_, err = genericHTTPFilterFile(server.URL, log)
+	if err == nil {
+		t.Error("expected error for 404 response, got nil")
+	}
+	if !strings.Contains(err.Error(), "file not found") {
+		t.Errorf("expected 'file not found' error, got %v", err)
+	}
+}
 }
