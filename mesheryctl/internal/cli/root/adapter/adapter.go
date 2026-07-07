@@ -281,6 +281,7 @@ func waitForValidateResponse(mctlCfg *config.MesheryCtlConfig, query string) (st
 	if err != nil {
 		return "", ErrCreatingValidateRequest(err)
 	}
+	defer res.Body.Close()
 
 	event, err := utils.ConvertRespToSSE(res)
 	if err != nil {
