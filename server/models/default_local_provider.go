@@ -1946,11 +1946,10 @@ func genericHTTPPatternFile(fileURL string, log logger.Handler) ([]MesheryPatter
 	if err != nil {
 		return nil, err
 	}
+	defer SafeClose(resp.Body, log)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("file not found")
 	}
-
-	defer SafeClose(resp.Body, log)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -1983,11 +1982,10 @@ func genericHTTPFilterFile(fileURL string, log logger.Handler) ([]MesheryFilter,
 	if err != nil {
 		return nil, err
 	}
+	defer SafeClose(resp.Body, log)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("file not found")
 	}
-
-	defer SafeClose(resp.Body, log)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
