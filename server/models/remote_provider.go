@@ -5245,6 +5245,7 @@ func (l *RemoteProvider) ShareFilter(req *http.Request) (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, ErrShareFilter(err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return resp.StatusCode, ErrShareFilter(fmt.Errorf("unable to share filter"))
